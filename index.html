@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive Talent Hub Platform with Segment Analytics Integration" />
+  <title>The Talent Hub | Interactive Analytics Hub</title>
+
+  <!-- Twilio Segment Analytics.js Snippet -->
+  <script>
+    !function(){var i="analytics",analytics=window[i]=window[i]||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","screen","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware","register"];analytics.factory=function(e){return function(){if(window[i].isLoaded)return window[i][e].apply(window[i],arguments);var n=Array.prototype.slice.call(arguments);n.unshift(e);analytics.push(n);return analytics}};for(var n=0;n<analytics.methods.length;n++){var key=analytics.methods[n];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var n=document.createElement("script");n.type="text/javascript";n.async=!0;n.setAttribute("data-global-segment-analytics-key",i);n.src="https://cdn.segment.com/analytics.js/v1/" + key + "/analytics.min.js";var r=document.getElementsByTagName("script")[0];r.parentNode.insertBefore(n,r);analytics._loadOptions=e};
+    
+    analytics._writeKey="HQCMlkHYmNyy1hFZV9mx0RYbCHMWJ9XB";
+    analytics.SNIPPET_VERSION="5.2.0";
+    
+    // Load Segment
+    analytics.load("HQCMlkHYmNyy1hFZV9mx0RYbCHMWJ9XB");
+    
+    // 1. Automatic Page View Tracking
+    analytics.page('Home', {
+      title: document.title,
+      url: window.location.href,
+      path: window.location.pathname,
+      referrer: document.referrer
+    });
+    }();
+
+    // Event Handlers
+    document.addEventListener('DOMContentLoaded', function() {
+
+      function logEventToUI(eventName, properties) {
+        var consoleBox = document.getElementById('debug-console');
+        if (consoleBox) {
+          var entry = document.createElement('div');
+          entry.className = 'log-entry';
+          entry.innerHTML = `<strong>⚡ Tracked:</strong> <span style="color:#7A1A1E;">${eventName}</span> <pre>${JSON.stringify(properties, null, 2)}</pre>`;
+          consoleBox.prepend(entry);
+        }
+      }
+
+      // Track Phone Calls
+      document.querySelectorAll('a[href^="tel:"]').forEach(function(phoneLink) {
+        phoneLink.addEventListener('click', function() {
+          var props = {
+            method: 'Phone',
+            phone_number: this.getAttribute('href').replace('tel:', ''),
+            button_label: this.innerText.trim(),
+            location: this.getAttribute('data-location') || 'Body'
+          };
+          analytics.track('Contact Initiated', props);
+          logEventToUI('Contact Initiated', props);
+        });
+      });
+
+      // Track WhatsApp Clicks
+      document.querySelectorAll('a[href*="wa.me"]').forEach(function(waLink) {
+        waLink.addEventListener('click', function() {
+          var props = {
+            method: 'WhatsApp',
+            phone_number: '+919158660990',
+            button_label: this.innerText.trim(),
+            location: this.getAttribute('data-location') || 'Body'
+          };
+          analytics.track('Contact Initiated', props);
+          logEventToUI('Contact Initiated', props);
+        });
+      });
+
+      // Track Navigation Links
+      document.querySelectorAll('.navlinks a').forEach(function(navLink) {
+        navLink.addEventListener('click', function() {
+          var props = {
+            target_section: this.getAttribute('href'),
+            link_text: this.innerText.trim()
+          };
+          analytics.track('Navigation Clicked', props);
+          logEventToUI('Navigation Clicked', props);
+        });
+      });
+
+      // Track Interactive Course Cards
+      document.querySelectorAll('.course-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          var props = {
+            course_name: this.getAttribute('data-course'),
+            category: this.getAttribute('data-category'),
+            fee: this.getAttribute('data-fee')
+          };
+          analytics.track('Course Card Clicked', props);
+          logEventToUI('Course Card Clicked', props);
+        });
+      });
+
+      // Track Course Search Filter
+      var searchInput = document.getElementById('course-search');
+      if (searchInput) {
+        searchInput.addEventListener('blur', function() {
+          if (this.value.trim() !== '') {
+            var props = {
+              search_term: this.value.trim(),
+              results_found: document.querySelectorAll('.course-card:not([style*="display: none"])').length
+            };
+            analytics.track('Products Searched', props);
+            logEventToUI('Products Searched', props);
+          }
+        });
+      }
+
+      // Track Lead Form Submission & Identify Call
+      var leadForm = document.getElementById('lead-form');
+      if (leadForm) {
+        leadForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          var name = document.getElementById('user-name').value;
+          var email = document.getElementById('user-email').value;
+          var selectedCourse = document.getElementById('user-course').value;
+          var userId = 'usr_' + btoa(email).replace(/=/g, '').substring(0, 10);
+
+          analytics.identify(userId, {
+            name: name,
+            email: email,
+            preferred_course: selectedCourse,
+            signup_date: new Date().toISOString()
+          });
+
+          var trackProps = {
+            form_name: 'Lead Capture Form',
+            course_applied: selectedCourse,
+            user_id: userId
+          };
+          analytics.track('Lead Form Submitted', trackProps);
+
+          logEventToUI('Identify Call Triggered', { userId: userId, email: email, name: name });
+          logEventToUI('Lead Form Submitted', trackProps);
+
+          alert('Form submitted! Identify and Track events fired to Segment.');
+          leadForm.reset();
+        });
+      }
+
+      // Track Social Links
+      document.querySelectorAll('.social a').forEach(function(socialLink) {
+        socialLink.addEventListener('click', function() {
+          var props = {
+            platform: this.innerText.trim(),
+            url: this.getAttribute('href')
+          };
+          analytics.track('Social Link Clicked', props);
+          logEventToUI('Social Link Clicked', props);
+        });
+      });
+
+    });
+
+    function filterCourses() {
+      var query = document.getElementById('course-search').value.toLowerCase();
+      document.querySelectorAll('.course-card').forEach(function(card) {
+        var name = card.getAttribute('data-course').toLowerCase();
+        var cat = card.getAttribute('data-category').toLowerCase();
+        if (name.includes(query) || cat.includes(query)) {
+          card.style.display = 'block';
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
+  </script>
+
+  <style>
+    :root {
+      --maroon: #7A1A1E; --navy: #1D1A3D; --grey: #B8BBBD;
+      --cream: #fbf7ef; --white: #fff; --ink: #211f27; --muted: #67636d;
+      --line: #e8e0d5; --shadow: 0 18px 50px rgba(29,26,61,.10);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; color: var(--ink); background: var(--cream); line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    .container { width: min(1120px, calc(100% - 32px)); margin: auto; }
+    header { position: sticky; top: 0; z-index: 20; background: rgba(251,247,239,.94); backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+    nav { height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
+    .brand { font-weight: 800; font-size: 22px; color: var(--navy); }
+    .navlinks { display: flex; gap: 24px; font-weight: 650; font-size: 14px; }
+    .navlinks a:hover { color: var(--maroon); }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; font-weight: 750; border: 1px solid transparent; cursor: pointer; transition: .2s ease; }
+    .btn:hover { transform: translateY(-2px); }
+    .primary { background: var(--maroon); color: white; box-shadow: 0 10px 25px rgba(122,26,30,.18); }
+    .secondary { border-color: var(--navy); color: var(--navy); background: white; }
+    .hero { padding: 80px 0 50px; text-align: center; }
+    h1 { font-size: clamp(38px, 6vw, 64px); color: var(--navy); margin: 0 0 16px; }
+    p.lead { font-size: 20px; color: var(--muted); max-width: 680px; margin: 0 auto 30px; }
+    .search-box { margin: 30px auto; max-width: 500px; }
+    .search-box input { width: 100%; padding: 14px 20px; border-radius: 999px; border: 1px solid var(--line); font-size: 16px; outline: none; }
+    .programs { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 30px; }
+    .course-card { background: white; border: 1px solid var(--line); border-radius: 22px; padding: 26px; cursor: pointer; transition: .22s ease; position: relative; }
+    .course-card:hover { transform: translateY(-5px); border-color: var(--maroon); box-shadow: var(--shadow); }
+    .tag { display: inline-block; font-size: 12px; font-weight: 800; color: var(--maroon); background: rgba(122,26,30,.08); padding: 5px 10px; border-radius: 999px; margin-bottom: 12px; }
+    .form-section { background: white; border: 1px solid var(--line); border-radius: 28px; padding: 40px; margin: 60px 0; box-shadow: var(--shadow); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+    .form-grid input, .form-grid select { padding: 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 15px; width: 100%; }
+    .console-section { background: #1D1A3D; color: #fff; padding: 30px; border-radius: 20px; margin: 40px 0; }
+    .console-section h3 { margin-top: 0; color: #fbf7ef; }
+    #debug-console { background: rgba(0,0,0,0.3); padding: 15px; border-radius: 12px; max-height: 250px; overflow-y: auto; font-family: monospace; font-size: 13px; }
+    .log-entry { margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; }
+    .log-entry pre { margin: 4px 0 0; color: #9feaf9; }
+    footer { border-top: 1px solid var(--line); padding: 32px 0; color: var(--muted); font-size: 14px; }
+    .footer-row { display: flex; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="container">
+      <nav>
+        <div class="brand">The Talent Hub</div>
+        <div class="navlinks">
+          <a href="#home">Home</a>
+          <a href="#courses">Courses</a>
+          <a href="#lead-capture">Register</a>
+          <a href="#contact">Contact</a>
+        </div>
+        <a class="btn primary" href="tel:+919158660990" data-location="Header">Call Now</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" id="home">
+      <h1>A Bright Future Begins Here</h1>
+      <p class="lead">Interactive academic portal integrated with Segment tracking analytics.</p>
+      <div>
+        <a class="btn primary" href="#courses">Explore Courses</a>
+        <a class="btn secondary" href="https://wa.me/919158660990" data-location="Hero">WhatsApp Us</a>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="course-search" placeholder="🔍 Search courses (e.g., JEE, NEET)..." onkeyup="filterCourses()" />
+      </div>
+    </section>
+
+    <section id="courses">
+      <h2>Available Courses</h2>
+      <p style="color: var(--muted);">Click any course card to fire a custom Segment <code>Course Card Clicked</code> event.</p>
+      
+      <div class="programs">
+        <div class="course-card" data-course="JEE Preparation" data-category="Engineering" data-fee="₹85,000">
+          <span class="tag">Engineering Entrance</span>
+          <h3>JEE Advanced & Main</h3>
+          <p>Comprehensive preparation for IIT & NIT entrance exams.</p>
+        </div>
+
+        <div class="course-card" data-course="NEET Medical" data-category="Medical" data-fee="₹90,000">
+          <span class="tag">Medical Entrance</span>
+          <h3>NEET UG</h3>
+          <p>Focused physics, chemistry, and biology preparation for medical seats.</p>
+        </div>
+
+        <div class="course-card" data-course="MHT-CET Course" data-category="State Board" data-fee="₹50,000">
+          <span class="tag">State Entrance</span>
+          <h3>MHT-CET</h3>
+          <p>Dedicated preparation for Maharashtra common entrance test.</p>
+        </div>
+
+        <div class="course-card" data-course="Olympiad Foundation" data-category="Classes 6-10" data-fee="₹35,000">
+          <span class="tag">Foundation</span>
+          <h3>Olympiad & Homi Bhabha</h3>
+          <p>Problem-solving techniques for competitive science talent exams.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="form-section" id="lead-capture">
+      <h2>Register Interest (Triggers <code>identify</code> + <code>track</code>)</h2>
+      <p style="color: var(--muted);">Submitting this form identifies the user and tracks a <code>Lead Form Submitted</code> event.</p>
+      
+      <form id="lead-form">
+        <div class="form-grid">
+          <input type="text" id="user-name" placeholder="Full Name" required />
+          <input type="email" id="user-email" placeholder="Email Address" required />
+          <select id="user-course" required>
+            <option value="">Select Target Course</option>
+            <option value="JEE Preparation">JEE Preparation</option>
+            <option value="NEET Medical">NEET Medical</option>
+            <option value="MHT-CET">MHT-CET</option>
+            <option value="Olympiads">Olympiads</option>
+          </select>
+          <button type="submit" class="btn primary">Submit Registration</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="console-section">
+      <h3>🖥️ Real-time Segment Event Monitor</h3>
+      <p style="font-size: 14px; opacity: 0.8;">Perform actions on this page to view generated analytics payloads live:</p>
+      <div id="debug-console">
+        <div class="log-entry"><em>Waiting for interactions... (Click buttons, cards, or submit form)</em></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-row" id="contact">
+      <div>© The Talent Hub · Bhusawal, Maharashtra</div>
+      <div class="social">
+        <a href="https://www.instagram.com/official.thetalenthub/">Instagram</a>
+        <a href="https://www.facebook.com/thetalenthubofficial/">Facebook</a>
+        <a href="https://www.youtube.com/channel/UCiDt3EKUnlQus9thuauY0Uw">YouTube</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
